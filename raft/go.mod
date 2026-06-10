@@ -1,25 +1,20 @@
 module go.etcd.io/etcd/raft/v3
 
-<<<<<<< HEAD
-go 1.25.0
-
-toolchain go1.25.10
-=======
 go 1.23.0
 
 toolchain go1.23.12
->>>>>>> openshift-4.19
 
 require (
 	github.com/cockroachdb/datadriven v1.0.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.4
-	go.etcd.io/etcd/client/pkg/v3 v3.5.31
+	go.etcd.io/etcd/client/pkg/v3 v3.5.26
 )
 
 require (
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.4 // indirect
 )
 
 // Bad imports are sometimes causing attempts to pull that code.
