@@ -24,7 +24,6 @@ import (
 	"testing"
 	"time"
 
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/pkg/v3/proxy"
 	"go.etcd.io/etcd/server/v3/etcdserver"
 	"go.uber.org/zap"
@@ -670,8 +669,8 @@ func (epc *EtcdProcessCluster) WithStopSignal(sig os.Signal) (ret os.Signal) {
 // StartNewProc grows cluster size by one with two phases
 // Phase 1 - Inform cluster of new configuration
 // Phase 2 - Start new member
-func (epc *EtcdProcessCluster) StartNewProc(cfg *EtcdProcessClusterConfig, isLearner bool, tb testing.TB) (memberID uint64, err error) {
-	memberID, serverCfg, err := epc.AddMember(cfg, isLearner, tb)
+func (epc *EtcdProcessCluster) StartNewProc(cfg *EtcdProcessClusterConfig, tb testing.TB) (memberID uint64, err error) {
+	memberID, serverCfg, err := epc.AddMember(cfg, tb)
 	if err != nil {
 		return 0, err
 	}
@@ -685,11 +684,12 @@ func (epc *EtcdProcessCluster) StartNewProc(cfg *EtcdProcessClusterConfig, isLea
 }
 
 // AddMember adds a new member to the cluster without starting it.
-func (epc *EtcdProcessCluster) AddMember(cfg *EtcdProcessClusterConfig, isLearner bool, tb testing.TB) (memberID uint64, serverCfg *EtcdServerProcessConfig, err error) {
-	if cfg == nil {
-		cfg = epc.Cfg
+func (epc *EtcdProcessCluster) AddMember(cfg *EtcdProcessClusterConfig, tb testing.TB) (memberID uint64, serverCfg *EtcdServerProcessConfig, err error) {
+	if cfg != nil {
+		serverCfg = cfg.EtcdServerProcessConfig(tb, epc.nextSeq)
+	} else {
+		serverCfg = epc.Cfg.EtcdServerProcessConfig(tb, epc.nextSeq)
 	}
-	serverCfg = cfg.EtcdServerProcessConfig(tb, epc.nextSeq)
 
 	epc.nextSeq++
 
@@ -705,17 +705,9 @@ func (epc *EtcdProcessCluster) AddMember(cfg *EtcdProcessClusterConfig, isLearne
 	// First add new member to cluster
 	tb.Logf("add new member to cluster; member-name %s, member-peer-url %s", serverCfg.Name, serverCfg.Purl.String())
 	memberCtl := NewEtcdctl(epc.Procs[0].EndpointsV3(), cfg.ClientTLS, cfg.IsClientAutoTLS, false)
-	var (
-		resp *clientv3.MemberAddResponse
-		mErr error
-	)
-	if isLearner {
-		resp, mErr = memberCtl.MemberAddAsLearner(serverCfg.Name, []string{serverCfg.Purl.String()})
-	} else {
-		resp, mErr = memberCtl.MemberAdd(serverCfg.Name, []string{serverCfg.Purl.String()})
-	}
-	if mErr != nil {
-		return 0, nil, fmt.Errorf("failed to add new member: %w", mErr)
+	resp, err := memberCtl.MemberAdd(serverCfg.Name, []string{serverCfg.Purl.String()})
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to add new member: %w", err)
 	}
 
 	return resp.Member.ID, serverCfg, nil

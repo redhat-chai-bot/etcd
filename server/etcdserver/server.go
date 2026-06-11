@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -68,7 +67,6 @@ import (
 	"go.etcd.io/etcd/server/v3/lease/leasehttp"
 	"go.etcd.io/etcd/server/v3/mvcc"
 	"go.etcd.io/etcd/server/v3/mvcc/backend"
-	"go.etcd.io/etcd/server/v3/verify"
 	"go.etcd.io/etcd/server/v3/wal"
 )
 
@@ -414,7 +412,7 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		if err = cfg.VerifyJoinExisting(); err != nil {
 			return nil, err
 		}
-		cl, err = membership.NewClusterFromURLsMap(cfg.Logger, cfg.InitialClusterToken, cfg.InitialPeerURLsMap)
+		cl, err = membership.NewClusterFromURLsMap(cfg.Logger, cfg.InitialClusterToken, cfg.InitialPeerURLsMap, membership.WithMaxLearners(cfg.ExperimentalMaxLearners))
 		if err != nil {
 			return nil, err
 		}
@@ -428,7 +426,10 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		if !isCompatibleWithCluster(cfg.Logger, cl, cl.MemberByName(cfg.Name).ID, prt) {
 			return nil, fmt.Errorf("incompatible with current running cluster")
 		}
-
+		scaleUpLearners := false
+		if err := membership.ValidateMaxLearnerConfig(cfg.ExperimentalMaxLearners, existingCluster.Members(), scaleUpLearners); err != nil {
+			return nil, err
+		}
 		remotes = existingCluster.Members()
 		cl.SetID(types.ID(0), existingCluster.ID())
 		cl.SetStore(st)
@@ -440,7 +441,7 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		if err = cfg.VerifyBootstrap(); err != nil {
 			return nil, err
 		}
-		cl, err = membership.NewClusterFromURLsMap(cfg.Logger, cfg.InitialClusterToken, cfg.InitialPeerURLsMap)
+		cl, err = membership.NewClusterFromURLsMap(cfg.Logger, cfg.InitialClusterToken, cfg.InitialPeerURLsMap, membership.WithMaxLearners(cfg.ExperimentalMaxLearners))
 		if err != nil {
 			return nil, err
 		}
@@ -462,7 +463,7 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 			if config.CheckDuplicateURL(urlsmap) {
 				return nil, fmt.Errorf("discovery cluster %s has duplicate url", urlsmap)
 			}
-			if cl, err = membership.NewClusterFromURLsMap(cfg.Logger, cfg.InitialClusterToken, urlsmap); err != nil {
+			if cl, err = membership.NewClusterFromURLsMap(cfg.Logger, cfg.InitialClusterToken, urlsmap, membership.WithMaxLearners(cfg.ExperimentalMaxLearners)); err != nil {
 				return nil, err
 			}
 		}
@@ -537,12 +538,22 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		if !cfg.ForceNewCluster {
 			id, cl, n, s, w = restartNode(cfg, snapshot)
 		} else {
+<<<<<<< HEAD
 			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot, ci)
+=======
+			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot, be)
+>>>>>>> openshift-4.18
 		}
 
 		cl.SetStore(st)
 		cl.SetBackend(be)
 		cl.Recover(api.UpdateCapability)
+
+		scaleUpLearners := false
+		if err := membership.ValidateMaxLearnerConfig(cfg.ExperimentalMaxLearners, cl.Members(), scaleUpLearners); err != nil {
+			return nil, err
+		}
+
 		if cl.Version() != nil && !cl.Version().LessThan(semver.Version{Major: 3}) && !beExist {
 			os.RemoveAll(bepath)
 			return nil, fmt.Errorf("database file (%v) of the backend is missing", bepath)
@@ -1334,6 +1345,7 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	// wait for raftNode to persist snapshot onto the disk
 	<-apply.notifyc
 
+<<<<<<< HEAD
 	bemuUnlocked := false
 	s.bemu.Lock()
 	defer func() {
@@ -1343,6 +1355,8 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	}()
 
 	// gofail: var applyBeforeOpenSnapshot struct{}
+=======
+>>>>>>> openshift-4.18
 	newbe, err := openSnapshotBackend(s.Cfg, s.snapshotter, apply.snapshot, s.beHooks)
 	if err != nil {
 		lg.Panic("failed to open snapshot backend", zap.Error(err))
@@ -2275,7 +2289,7 @@ func (s *EtcdServer) apply(
 				s.consistIndex.SetConsistentApplyingIndex(e.Index, e.Term)
 				shouldApplyV3 = membership.ApplyBoth
 			}
-			// gofail: var beforeApplyOneConfChange struct{}
+
 			var cc raftpb.ConfChange
 			pbutil.MustUnmarshal(&cc, e.Data)
 			removedSelf, err := s.applyConfChange(cc, confState, shouldApplyV3)
@@ -2487,49 +2501,7 @@ func (s *EtcdServer) applyConfChange(cc raftpb.ConfChange, confState *raftpb.Con
 			s.r.transport.UpdatePeer(m.ID, m.PeerURLs)
 		}
 	}
-
-	s.verifyV3StoreInSyncWithV2Store(shouldApplyV3)
-
 	return false, nil
-}
-
-func (s *EtcdServer) verifyV3StoreInSyncWithV2Store(shouldApplyV3 membership.ShouldApplyV3) {
-	if !verify.VerifyEnabled() {
-		return
-	}
-
-	// If shouldApplyV3 == false, then it means v2store hasn't caught up with v3store.
-	if !shouldApplyV3 {
-		return
-	}
-
-	// clean up the Attributes, and we only care about the RaftAttributes
-	cleanAttributesFunc := func(members map[types.ID]*membership.Member) map[types.ID]*membership.Member {
-		processedMembers := make(map[types.ID]*membership.Member)
-		for id, m := range members {
-			clonedMember := m.Clone()
-			clonedMember.Attributes = membership.Attributes{}
-			processedMembers[id] = clonedMember
-		}
-
-		return processedMembers
-	}
-
-	v2Members, _ := s.cluster.MembersFromStore()
-	v3Members, _ := s.cluster.MembersFromBackend()
-
-	processedV2Members := cleanAttributesFunc(v2Members)
-	processedV3Members := cleanAttributesFunc(v3Members)
-
-	if match := reflect.DeepEqual(processedV2Members, processedV3Members); !match {
-		v2Data, v2Err := json.Marshal(processedV2Members)
-		v3Data, v3Err := json.Marshal(processedV3Members)
-
-		if v2Err != nil || v3Err != nil {
-			panic("members in v2store doesn't match v3store")
-		}
-		panic(fmt.Sprintf("members in v2store doesn't match v3store, v2store: %s, v3store: %s", string(v2Data), string(v3Data)))
-	}
 }
 
 // TODO: non-blocking snapshot

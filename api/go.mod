@@ -1,8 +1,14 @@
 module go.etcd.io/etcd/api/v3
 
+<<<<<<< HEAD
 go 1.25.0
 
 toolchain go1.25.10
+=======
+go 1.22
+
+toolchain go1.22.11
+>>>>>>> openshift-4.18
 
 require (
 	github.com/coreos/go-semver v0.3.0
@@ -14,9 +20,15 @@ require (
 )
 
 require (
+<<<<<<< HEAD
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
+=======
+	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
+>>>>>>> openshift-4.18
 	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect

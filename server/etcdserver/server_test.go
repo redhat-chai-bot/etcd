@@ -600,11 +600,6 @@ func TestApplyConfChangeError(t *testing.T) {
 func TestApplyConfChangeShouldStop(t *testing.T) {
 	cl := membership.NewCluster(zaptest.NewLogger(t))
 	cl.SetStore(v2store.New())
-
-	be, _ := betesting.NewDefaultTmpBackend(t)
-	defer betesting.Close(t, be)
-	cl.SetBackend(be)
-
 	for i := 1; i <= 3; i++ {
 		cl.AddMember(&membership.Member{ID: types.ID(i)}, true)
 	}
@@ -653,13 +648,11 @@ func TestApplyConfigChangeUpdatesConsistIndex(t *testing.T) {
 
 	cl := membership.NewCluster(zaptest.NewLogger(t))
 	cl.SetStore(v2store.New())
+	cl.AddMember(&membership.Member{ID: types.ID(1)}, true)
 
 	be, _ := betesting.NewDefaultTmpBackend(t)
 	defer betesting.Close(t, be)
-	cl.SetBackend(be)
 	cindex.CreateMetaBucket(be.BatchTx())
-
-	cl.AddMember(&membership.Member{ID: types.ID(1)}, true)
 
 	ci := cindex.NewConsistentIndex(be)
 	srv := &EtcdServer{
@@ -741,11 +734,6 @@ func TestApplyMultiConfChangeShouldStop(t *testing.T) {
 	lg := zaptest.NewLogger(t)
 	cl := membership.NewCluster(lg)
 	cl.SetStore(v2store.New())
-
-	be, _ := betesting.NewDefaultTmpBackend(t)
-	defer betesting.Close(t, be)
-	cl.SetBackend(be)
-
 	for i := 1; i <= 5; i++ {
 		cl.AddMember(&membership.Member{ID: types.ID(i)}, true)
 	}
@@ -1365,11 +1353,6 @@ func TestAddMember(t *testing.T) {
 	cl := newTestCluster(t, nil)
 	st := v2store.New()
 	cl.SetStore(st)
-
-	be, _ := betesting.NewDefaultTmpBackend(t)
-	defer betesting.Close(t, be)
-	cl.SetBackend(be)
-
 	r := newRaftNode(raftNodeConfig{
 		lg:          lg,
 		Node:        n,
@@ -1471,11 +1454,6 @@ func TestRemoveMember(t *testing.T) {
 	cl := newTestCluster(t, nil)
 	st := v2store.New()
 	cl.SetStore(v2store.New())
-
-	be, _ := betesting.NewDefaultTmpBackend(t)
-	defer betesting.Close(t, be)
-	cl.SetBackend(be)
-
 	cl.AddMember(&membership.Member{ID: 1234}, true)
 	r := newRaftNode(raftNodeConfig{
 		lg:          lg,
@@ -1522,11 +1500,6 @@ func TestUpdateMember(t *testing.T) {
 	cl := newTestCluster(t, nil)
 	st := v2store.New()
 	cl.SetStore(st)
-
-	be, _ := betesting.NewDefaultTmpBackend(t)
-	defer betesting.Close(t, be)
-	cl.SetBackend(be)
-
 	cl.AddMember(&membership.Member{ID: 1234}, true)
 	r := newRaftNode(raftNodeConfig{
 		lg:          lg,
