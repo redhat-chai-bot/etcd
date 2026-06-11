@@ -1,24 +1,14 @@
 module go.etcd.io/etcd/client/pkg/v3
 
-<<<<<<< HEAD
-go 1.25.0
-
-toolchain go1.25.10
-=======
 go 1.22
 
 toolchain go1.22.11
->>>>>>> openshift-4.18
 
 require (
 	github.com/coreos/go-systemd/v22 v22.3.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.17.0
-<<<<<<< HEAD
-	golang.org/x/sys v0.45.0
-=======
 	golang.org/x/sys v0.29.0
->>>>>>> openshift-4.18
 )
 
 require (

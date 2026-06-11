@@ -1,28 +1,17 @@
 module go.etcd.io/etcd/client/v3
 
-<<<<<<< HEAD
-go 1.25.0
+go 1.23
 
-toolchain go1.25.10
-=======
-go 1.22
-
-toolchain go1.22.11
->>>>>>> openshift-4.18
+toolchain go1.23.12
 
 require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/prometheus/client_golang v1.11.1
-<<<<<<< HEAD
 	go.etcd.io/etcd/api/v3 v3.5.31
 	go.etcd.io/etcd/client/pkg/v3 v3.5.31
-=======
-	go.etcd.io/etcd/api/v3 v3.5.18
-	go.etcd.io/etcd/client/pkg/v3 v3.5.18
->>>>>>> openshift-4.18
 	go.uber.org/zap v1.17.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.71.1
 	sigs.k8s.io/yaml v1.2.0
 )
 
@@ -39,22 +28,12 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-<<<<<<< HEAD
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
-=======
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
->>>>>>> openshift-4.18
+	google.golang.org/genproto/googleapis/api v0.0.0-20250115164207-1a7da9e5054f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 

@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-<<<<<<< HEAD
 	"github.com/stretchr/testify/require"
 
 	"go.etcd.io/bbolt"
@@ -34,9 +33,6 @@ import (
 	"go.etcd.io/etcd/server/v3/etcdserver"
 	"go.etcd.io/etcd/server/v3/etcdserver/api/membership"
 	"go.etcd.io/etcd/server/v3/mvcc/buckets"
-=======
-	"go.etcd.io/etcd/api/v3/etcdserverpb"
->>>>>>> openshift-4.18
 	"go.etcd.io/etcd/tests/v3/framework/e2e"
 )
 
@@ -249,7 +245,6 @@ func ctlV3MemberUpdate(cx ctlCtx, memberID, peerURL string) error {
 	cmdArgs := append(cx.PrefixArgs(), "member", "update", memberID, fmt.Sprintf("--peer-urls=%s", peerURL))
 	return e2e.SpawnWithExpectWithEnv(cmdArgs, cx.envMap, " updated in cluster ")
 }
-<<<<<<< HEAD
 
 // TestCtlV3PromotingLearner tests whether etcd can automatically fix the
 // issue caused by https://github.com/etcd-io/etcd/issues/19557.
@@ -549,5 +544,3 @@ func TestCtlV3MemberAddAsLearnerWithOneMemberDown(t *testing.T) {
 		})
 	}
 }
-=======
->>>>>>> openshift-4.18

@@ -538,11 +538,7 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		if !cfg.ForceNewCluster {
 			id, cl, n, s, w = restartNode(cfg, snapshot)
 		} else {
-<<<<<<< HEAD
-			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot, ci)
-=======
-			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot, be)
->>>>>>> openshift-4.18
+			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot, ci, be)
 		}
 
 		cl.SetStore(st)
@@ -1345,7 +1341,6 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	// wait for raftNode to persist snapshot onto the disk
 	<-apply.notifyc
 
-<<<<<<< HEAD
 	bemuUnlocked := false
 	s.bemu.Lock()
 	defer func() {
@@ -1355,8 +1350,6 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	}()
 
 	// gofail: var applyBeforeOpenSnapshot struct{}
-=======
->>>>>>> openshift-4.18
 	newbe, err := openSnapshotBackend(s.Cfg, s.snapshotter, apply.snapshot, s.beHooks)
 	if err != nil {
 		lg.Panic("failed to open snapshot backend", zap.Error(err))

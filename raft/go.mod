@@ -1,24 +1,14 @@
 module go.etcd.io/etcd/raft/v3
 
-<<<<<<< HEAD
-go 1.25.0
+go 1.23
 
-toolchain go1.25.10
-=======
-go 1.22
-
-toolchain go1.22.11
->>>>>>> openshift-4.18
+toolchain go1.23.12
 
 require (
 	github.com/cockroachdb/datadriven v1.0.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.4
-<<<<<<< HEAD
 	go.etcd.io/etcd/client/pkg/v3 v3.5.31
-=======
-	go.etcd.io/etcd/client/pkg/v3 v3.5.18
->>>>>>> openshift-4.18
 )
 
 require (
