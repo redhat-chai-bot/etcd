@@ -82,5 +82,5 @@ func getCC(r EtcdManualResolver) (cc resolver.ClientConn) {
 		}
 	}()
 
-	return r.CC()
+	return r.CC
 }
